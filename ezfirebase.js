@@ -231,5 +231,53 @@ const ezfb = (function () {
     }
   };
 
+  /**
+   * With this function you can easily set the data for a specific form
+   *
+   * @param {string} reference - The table where the ID should be checked in.
+   * @param {string} id - The ID.
+   * @param {string} formName - The name of the form.
+   *
+   */
+
+  public_functions.setFormData = function (reference, id, formName) {
+    this.searchById(reference, id).then((result) => {
+      const form = document.querySelector(`#${formName}`);
+
+      // Get all the input elements and save the data to the data object.
+      const formInputs = form.getElementsByTagName("input");
+
+      if (formInputs.length >= 1) {
+        for (let i = 0; i < formInputs.length; i += 1) {
+          const formInput = formInputs[i];
+          const key = formInput.getAttribute("name");
+          formInput.value = eval(`result[0].${key}`);
+        }
+      }
+
+      //   Get all the select elements and save the data to the data object.
+      const formSelects = form.getElementsByTagName("select");
+
+      if (formSelects.length >= 1) {
+        for (let i = 0; i < formSelects.length; i += 1) {
+          const formSelect = formSelects[i];
+          const key = formSelect.getAttribute("name");
+          formSelect.value = eval(`result[0].${key}`);
+        }
+      }
+
+      // Get all the select elements and save the data to the data object.
+      const formTextareas = form.getElementsByTagName("textarea");
+
+      if (formTextareas.length >= 1) {
+        for (let i = 0; i < formTextareas.length; i += 1) {
+          const key = formTextareas[i].getAttribute("name");
+          const id = formTextareas[i].getAttribute("id");
+          eval(`cke${id}.setData(result[0].${key})`);
+        }
+      }
+    });
+  };
+
   return public_functions;
 })();
