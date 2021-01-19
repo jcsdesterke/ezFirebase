@@ -21,7 +21,7 @@ const ezfb = (function () {
    *
    * @param {string} reference - The reference the data should be added to. For example 'clients' or 'items'.
    * @param {string} data - An object with all the data you want to add to the database.
-   * @return {string} A good string
+   * @return {string} A confirmation
    *
    */
 
@@ -49,6 +49,99 @@ const ezfb = (function () {
     let result = dataToAdd;
 
     return result;
+  };
+
+  /**
+   * With this function you can search for values in a specified table with multiple objects. The result you get is an array with all the objects in it that correspond with the keyword you are looking for.
+   *
+   * @param {string} table - The name of the table you want to search in. I.e. clients or articles.
+   * @param {string} keyword - A value you are looking for. I.e. a name, adress or age.
+   * @return {string} A good string
+   *
+   * @example
+   *
+   *     ezfb.search("clients", "Jan").then((searchResponse) => {
+   *         *Work with the searchResponse data here.*
+   *     });
+   */
+
+  public_functions.search = async function (table, keyword) {
+    let searchResponse = [];
+
+    var query = firebase.database().ref(table).orderByKey();
+    const snapshot = await query.once("value");
+    snapshot.forEach(function (childSnapshot) {
+      let childData = childSnapshot.val();
+
+      let childDataValues = Object.values(childData);
+
+      if (childDataValues.toString().indexOf(keyword) != -1) {
+        let searchResult = {};
+
+        searchResult = childData;
+
+        searchResponse.push(searchResult);
+      }
+    });
+
+    if (searchResponse.length === 0) {
+      searchResponse[0] = "No matches found";
+    }
+
+    return searchResponse;
+  };
+
+  /**
+   * With this function you can search for values in a specified table with multiple objects. The result you get is an array with all the objects in it that correspond with the keyword you are looking for.
+   *
+   * @param {string} table - The name of the table you want to search in. I.e. clients or articles.
+   * @param {string} id - The id of the item you are looking for.
+   * @return {string} An array with an object in it containing all the data you were looking for.
+   *
+   * @example
+   *
+   *     ezfb.searchById('clients', 2).then((result) => {
+   *         Work with the reesult here
+   *     });
+   */
+
+  public_functions.searchById = async function (table, id) {
+    let resultt = [];
+    var query = firebase
+      .database()
+      .ref(table + "/" + id)
+      .orderByKey();
+    const snapshot = await query.once("value").then(function (snapshot) {
+      let result = snapshot.val();
+
+      resultt.push(result);
+    });
+
+    return resultt;
+  };
+
+  /**
+   * With this function you can update data in a specified table in the database. You send an object with all the info you want to update in it.
+   *
+   * @param {string} reference - The table it should be updated in. For example the clients table.
+   * @param {string} dataToAdd - An object with all the data you want to update to the database.
+   * @return {string} A good string
+   *
+   */
+
+  public_functions.update = function (reference, dataToAdd) {
+    firebase.database().ref(reference).update(dataToAdd);
+  };
+
+  /**
+   * With this function you can remove data from a specific location.
+   *
+   * @param {string} reference - The location which should be removed from the database
+   *
+   */
+
+  public_functions.remove = function (reference) {
+    firebase.database().ref(reference).remove();
   };
 
   /**
@@ -90,7 +183,52 @@ const ezfb = (function () {
       }
     }
 
+    // Get all the select elements and save the data to the data object.
+    const formTextareas = form.getElementsByTagName("textarea");
+
+    if (formTextareas.length >= 1) {
+      for (let i = 0; i < formTextareas.length; i += 1) {
+        const key = formTextareas[i].getAttribute("name");
+        const id = formTextareas[i].getAttribute("id");
+        const value = eval(`cke${id}.getData()`);
+        data[key] = value;
+      }
+    }
+
     return data;
+  };
+
+  /**
+   * With this function you can easily convert textareas to CKEditors, watch out though, it converts ALL textareas.
+   */
+
+  public_functions.loadCKE = function () {
+    const textareas = document.getElementsByTagName("textarea");
+
+    for (let i = 0; i < textareas.length; i += 1) {
+      const id = textareas[i].getAttribute("id");
+
+      eval(`let cke${id};`);
+
+      ClassicEditor.create(document.querySelector(`#${id}`), {
+        toolbar: [
+          "heading",
+          "|",
+          "bold",
+          "italic",
+          "link",
+          "bulletedList",
+          "numberedList",
+          "blockQuote",
+        ],
+      })
+        .then((newEditor) => {
+          eval(`cke${id} = newEditor;`);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
   };
 
   return public_functions;
