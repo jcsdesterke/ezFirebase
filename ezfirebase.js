@@ -90,7 +90,52 @@ const ezfb = (function () {
       }
     }
 
+    // Get all the select elements and save the data to the data object.
+    const formTextareas = form.getElementsByTagName("textarea");
+
+    if (formTextareas.length >= 1) {
+      for (let i = 0; i < formTextareas.length; i += 1) {
+        const key = formTextareas[i].getAttribute("name");
+        const id = formTextareas[i].getAttribute("id");
+        const value = eval(`cke${id}.getData()`);
+        data[key] = value;
+      }
+    }
+
     return data;
+  };
+
+  /**
+   * With this function you can easily convert textareas to CKEditors
+   */
+
+  public_functions.loadCKE = function () {
+    const textareas = document.getElementsByTagName("textarea");
+
+    for (let i = 0; i < textareas.length; i += 1) {
+      const id = textareas[i].getAttribute("id");
+
+      eval(`let cke${id};`);
+
+      ClassicEditor.create(document.querySelector(`#${id}`), {
+        toolbar: [
+          "heading",
+          "|",
+          "bold",
+          "italic",
+          "link",
+          "bulletedList",
+          "numberedList",
+          "blockQuote",
+        ],
+      })
+        .then((newEditor) => {
+          eval(`cke${id} = newEditor;`);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
   };
 
   return public_functions;
